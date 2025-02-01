@@ -6,7 +6,9 @@
 #include <tools/time.h>
 #include <tools/stringTools.h>
 #include <tools/io.h>
+#include <tools/path.h>
 #include <cwctype>
+#include <Windows.h>
 using namespace std;
 DEF_CURRENT_PROJECT_NAME( );
 DEF_CURRENT_RELATIVELY_PATH_STATIC_VALUE( __FILE__ );
@@ -90,52 +92,79 @@ void readOpenglEnumInfoFile( const std::string &path ) {
 		Printer_Error_Info( "路径是一个文件 -> " +path );
 
 }
+void readCmakePropertiesInfoFile( const string &cmake_path ) {
+	cyl::tools::path targetProperties( cmake_path + "/cmake/Properties on Targets.txt" );
+	if( targetProperties.isExists( ) ) { // 读取目标
+		std::wstring textContext;
+		if( targetProperties.readPathFile( &textContext ) ) {
+			std::wstring spliteStr( L"\n" );
+			auto splitString = cyl::tools::stringTools::splitString( textContext, spliteStr );
+			std::wstringstream cHeardFile, cmkaeFcuntionGetProperty, defineVector;
+			defineVector << L"\n#include <utility>\n#include <string>\n#include <vector>\n/// @brief cmake 的全变量宏定义容器 \n#define DEF_ALL_CMAKE_VALUE_STD_VECTOR( ) \\\n\tconst static std::vector<std::pair<std::string, std::string>> cmake_all_name_value = { \\\n";
+
+			for( auto &removeBothSpace : splitString ) {
+				auto removeBothSpaceChar = cyl::tools::stringTools::removeBothSpaceChar( removeBothSpace );
+
+				// 长度为0，或者字符串当中存在空格，则不处理
+				if( removeBothSpaceChar.length( ) == 0 || cyl::tools::stringTools::hasSpace( removeBothSpaceChar ) || removeBothSpaceChar.find( L"<" ) != std::wstring::npos || removeBothSpaceChar.find( L"LOCATION" ) != std::wstring::npos )
+					continue;
+				auto cmakeKeyName = L"cmake_property_" + cyl::tools::stringTools::toLower( removeBothSpaceChar );
+				auto cHeardKeyName = L"cmake_property_" + cyl::tools::stringTools::toUpper( removeBothSpaceChar );
+				cHeardFile << L"/// @brief \n#define " << cHeardKeyName << L" \"${" << cmakeKeyName << L"}\"\n";
+				// get_target_property( var ${target_obj} <CONFIG>_OUTPUT_NAME )
+				cmkaeFcuntionGetProperty << L"get_target_property( " << cmakeKeyName << L" ${target_obj} " << removeBothSpaceChar << L" )\n";
+				// std::pair<int,std::pair<std::string, std::string>>
+				defineVector << L"\tstd::pair<std::string, std::string>(\"" << cHeardKeyName << "\", " << cHeardKeyName << "),\\\n";
+			}
+			defineVector << L"}";
+			cyl::tools::path targetPropertiesWriteHeader( cmake_path + "/cmake/write/Properties on Targets.txt" );
+			cHeardFile << L"\n" << defineVector.str( ) << L"\n\n// cmake -> \n" << cmkaeFcuntionGetProperty.str( ) << L"\n\n// cmake end\n";
+			targetPropertiesWriteHeader.writePathFile( cHeardFile.str( ) );
+		}
+	}
+}
+/// @brief 测试字符串切分
+void testSplitString( ) {
+	std::wstring source = L"3333243573";
+	std::wstring checkString = L"3";
+	std::wcout << L"原始字符串:(" << source.length( ) << L")=>\t" << source << std::endl;
+	std::wcout << L"匹配字符串:(" << checkString.length( ) << L")=>\t" << checkString << std::endl;
+	std::wcout << L"==================" << std::endl;
+	auto splitString = cyl::tools::stringTools::splitString( source, checkString );
+	for( auto &outPrt : splitString )
+		std::wcout << L"\t长度:(" << outPrt.length( ) << L")=>\t" << outPrt << std::endl;
+}
+/// @brief 空格移除实验
+void testRmoveSpace( ) {
+	std::wstring obj( L" d sadsa " );
+	auto removeLeftSpaceChar = cyl::tools::stringTools::removeLeftSpaceChar( obj );
+	std::wcout << L"$" << removeLeftSpaceChar << L"$" << std::endl;
+	auto removeRightSpaceChar = cyl::tools::stringTools::removeRightSpaceChar( obj );
+	std::wcout << L"$" << removeRightSpaceChar << L"$" << std::endl;
+	auto removeBothSpaceChar = cyl::tools::stringTools::removeBothSpaceChar( obj );
+	std::wcout << L"$" << removeBothSpaceChar << L"$" << std::endl;
+}
+
+DEF_ALL_CMAKE_VALUE_STD_VECTOR( );
 int main( int argc, char *argv[ ] ) {
-	// readOpenglEnumInfoFile( project_name + "/resources" );
-	std::cout << "TZDB List:\n";
-	std::chrono::tzdb_list &listDB = std::chrono::get_tzdb_list( );
-	for( auto &rDB : listDB )
-		std::cout << " - " << rDB.version << "\n";
-
-	std::cout << "\nDefault TZDB\n";
-	const std::chrono::tzdb &db = std::chrono::get_tzdb( );
-	std::cout << " Version: " << db.version << ", with "
-		<< db.zones.size( ) << " zones, "
-		<< db.links.size( ) << " zone links\n";
-	std::stringstream ss;
-	std::cout << " Links:\n";
-	for( auto &link : db.links ) {
-		std::string msg;
-		msg.append( "  - " ).append( link.name( ) ).append( ":" ).append( link.target( ) ).append( "\n" );
-		std::cout << msg;
-		ss << msg;
-
+	try {
+		auto text = "en_US.UTF-8";
+		std::locale locale( text );
+		std::setlocale( LC_ALL, text );
+		std::locale::global( locale );
+		std::wcout.imbue( locale );
+		std::cout.imbue( locale );
+	} catch( const std::exception &msg ) {
+		std::cerr << msg.what( ) << std::endl;
+		return -1;
 	}
-	std::cout << " Zones:\n";
-	for( auto &zone : db.zones ) {
-		std::string msg;
-		msg.append( "  - " ).append( zone.name( ) ).append( "\n" );
-		std::cout << msg;
-		ss << msg;
+	for( auto &pair : cmake_all_name_value ) {
+		std::cout << pair.first << " : " << pair.second << std::endl;
 	}
-	cyl::tools::path writeFile( project_name + "/resources/write/local.txt" );
-	writeFile.writePathFile( ss.str( ) );
+	// readOpenglEnumInfoFile( project_name + "/resources/opengl" );
+	//testSplitString( );
+	//testRmoveSpace( );
+	readCmakePropertiesInfoFile( project_name + "/resources" );
 
-	// std::chrono::system_clock::time_point
-	auto tpSys = std::chrono::system_clock::now( );
-	std::cout << "System time: " << tpSys << "\n";
-
-	// std::chrono::local_time<std::chrono::system_clock::duration>
-	auto tpLoc = std::chrono::current_zone( )->to_local( tpSys );
-	std::cout << "Local time: " << tpLoc << "\n";
-	auto commonType = tpLoc.time_since_epoch( ) - tpSys.time_since_epoch( );
-	std::chrono::hh_mm_ss hms( commonType );
-	std::cout << "sub : " << hms << "\n";
-	
-	std::chrono::zoned_time tpSysZone( tpSys );
-	std::cout << "System zone time: " << tpSysZone << "\n";
-
-	std::chrono::zoned_time tpZone( std::chrono::current_zone( ), tpSys );
-	std::cout << "Zone time: " << tpZone << "\n";
 	exit( EXIT_SUCCESS ); // 程序退出
 }

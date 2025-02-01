@@ -2,7 +2,7 @@
 
 get_absolute_path( absFilePath ${CMAKE_CURRENT_LIST_FILE} )
 string_splite( result_list ${absFilePath} ${cmake_sep_char} )
-list( GET result_list -4 -3 -2  resultList )
+list( GET result_list -4 -3 -2 resultList )
 string( JOIN " " jionResult ${resultList} )
 normal_project_name( result_name "${jionResult}" )
 set( prject_name ${result_name} )
@@ -10,10 +10,6 @@ message( "============ ${prject_name}" )
 message( "name =" ${prject_name} )
 project( ${prject_name} VERSION 0.1 LANGUAGES CXX )
 message( "============ ${CURRENT_FOLDER}" )
-
-# # 根部定义的模板位置
-set( cmake_definitions_env_out "${CMAKE_CURRENT_LIST_DIR}/auto_generate_files/macro/" )
-configure_temp_files( ${prject_name} ${cmake_definitions_env_out} )
 
 add_executable( ${PROJECT_NAME} )
 
@@ -26,13 +22,14 @@ set_target_link_glad_lib( ${PROJECT_NAME} )
 set_target_link_glfw3_lib( ${PROJECT_NAME} )
 set_target_link_user_tools_lib( ${prject_name} )
 
-get_path_sources( "${CMAKE_CURRENT_LIST_DIR}/srcs/" "c" SRC_C_LIST ) # .c
-get_path_sources( "${CMAKE_CURRENT_LIST_DIR}/srcs/" "cpp" SRC_CPP_LIST ) # .cpp
-get_path_sources( "${CMAKE_CURRENT_LIST_DIR}/srcs/" "h" HEADER_FILE ) # .h
-target_include_directories( ${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/srcs" ) # 加入头文件搜索路径
+# # 生成文件
+set( cmake_definitions_env_out "${CMAKE_CURRENT_LIST_DIR}/auto_generate_files/macro/" )
+configure_temp_files( outTemPtah ${cmake_definitions_env_out} ${prject_name} )
 
 # 添加源文件
-target_sources( ${PROJECT_NAME} PRIVATE ${SRC_C_LIST} ${SRC_CPP_LIST} ${HEADER_FILE} ${cmake_definitions_env_out} )
+target_include_directories( ${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/srcs" ) # 加入头文件搜索路径
+file( GLOB_RECURSE project_src_file "srcs/*.cpp" "srcs/*.c" "srcs/*.h" "srcs/*.hpp" )
+target_sources( ${PROJECT_NAME} PRIVATE ${project_src_file} ${outTemPtah} )
 
 set( copy_file_target_dir "${Project_Run_Bin_Path}/${PROJECT_NAME}" )
 set( copy_file_src_dir "${CMAKE_CURRENT_LIST_DIR}" )
