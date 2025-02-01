@@ -1,0 +1,23 @@
+GL_NEVER
+Never passes.
+
+GL_LESS
+Passes if the incoming depth value is less than the stored depth value.
+
+GL_EQUAL
+Passes if the incoming depth value is equal to the stored depth value.
+
+GL_LEQUAL
+Passes if the incoming depth value is less than or equal to the stored depth value.
+
+GL_GREATER
+Passes if the incoming depth value is greater than the stored depth value.
+
+GL_NOTEQUAL
+Passes if the incoming depth value is not equal to the stored depth value.
+
+GL_GEQUAL
+Passes if the incoming depth value is greater than or equal to the stored depth value.
+
+GL_ALWAYS
+Always passes.
