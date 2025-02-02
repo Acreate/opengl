@@ -116,7 +116,7 @@ void readCmakePropertiesInfoFile( const string &cmake_path ) {
 				auto cHeardKeyName = L"cmake_property_" + cyl::tools::stringTools::toUpper( removeBothSpaceChar );
 				cHeardFile << L"/// @brief \n#define " << cHeardKeyName << L" \"${" << cmakeKeyName << L"}\"\n";
 				// get_target_property( var ${target_obj} <CONFIG>_OUTPUT_NAME )
-				cmkaeFcuntionGetProperty << L"get_target_property( " << cmakeKeyName << L" ${target_obj} " << removeBothSpaceChar << L" )\n";
+				cmkaeFcuntionGetProperty << L"// get_target_property( " << cmakeKeyName << L" ${target_obj} " << removeBothSpaceChar << L" )\n";
 				// std::pair<int,std::pair<std::string, std::string>>
 				defineVector << L"\tstd::pair<std::string, std::string>(\"" << cHeardKeyName << "\", " << cHeardKeyName << "),\\\n";
 			}
