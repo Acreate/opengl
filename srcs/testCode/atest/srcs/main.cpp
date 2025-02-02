@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <chrono>
 #include "../auto_generate_files/macro/cmake_to_c_cpp_header_env.h"
+#include "../auto_generate_files/macro/cmake_property_to_c_cpp_header_env.h"
+#include "../auto_generate_files/macro/cmake_value_to_c_cpp_header_env.h"
 
 #include <tools/toolsNamespace.h>
 #include <tools/time.h>
@@ -93,14 +95,16 @@ void readOpenglEnumInfoFile( const std::string &path ) {
 
 }
 void readCmakePropertiesInfoFile( const string &cmake_path ) {
-	cyl::tools::path targetProperties( cmake_path + "/cmake/Properties on Targets.txt" );
+	cyl::tools::path targetProperties( cmake_path + "/cmake/properties/Properties on Targets.txt" );
 	if( targetProperties.isExists( ) ) { // 读取目标
 		std::wstring textContext;
 		if( targetProperties.readPathFile( &textContext ) ) {
 			std::wstring spliteStr( L"\n" );
 			auto splitString = cyl::tools::stringTools::splitString( textContext, spliteStr );
 			std::wstringstream cHeardFile, cmkaeFcuntionGetProperty, defineVector;
-			defineVector << L"\n#include <utility>\n#include <string>\n#include <vector>\n/// @brief cmake 的全变量宏定义容器 \n#define DEF_ALL_CMAKE_VALUE_STD_VECTOR( ) \\\n\tconst static std::vector<std::pair<std::string, std::string>> cmake_all_name_value = { \\\n";
+			std::wstring headOneBuilderMarco = L"CMAKE__PROPERTY_TO_C_CPP_HEADER_ENV_H_H_HEAD__FILE__";
+			cHeardFile << "#ifndef " << headOneBuilderMarco << "\n#define " << headOneBuilderMarco << L"\n#pragma once\n";
+			defineVector << L"\n#include <utility>\n#include <string>\n#include <vector>\n/// @brief cmake 的全变量宏定义容器 \n#define DEF_ALL_CMAKE_PROPERTIES_VALUE_STD_VECTOR( ) \\\n\tconst static std::vector<std::pair<std::string, std::string>> cmake_property_name_all_value = { \\\n";
 
 			for( auto &removeBothSpace : splitString ) {
 				auto removeBothSpaceChar = cyl::tools::stringTools::removeBothSpaceChar( removeBothSpace );
@@ -117,8 +121,21 @@ void readCmakePropertiesInfoFile( const string &cmake_path ) {
 				defineVector << L"\tstd::pair<std::string, std::string>(\"" << cHeardKeyName << "\", " << cHeardKeyName << "),\\\n";
 			}
 			defineVector << L"}";
-			cyl::tools::path targetPropertiesWriteHeader( cmake_path + "/cmake/write/Properties on Targets.txt" );
-			cHeardFile << L"\n" << defineVector.str( ) << L"\n\n// cmake -> \n" << cmkaeFcuntionGetProperty.str( ) << L"\n\n// cmake end\n";
+			cyl::tools::path targetPropertiesWriteHeader( cmake_path + "/cmake/write/properties/Properties on Targets.h" );
+			cHeardFile << L"\n" << defineVector.str( ) << LR"(
+/// @brief 定义获取有效 cmake 属性的函数，该声明前必须调用 DEF_ALL_CMAKE_PROPERTIES_VALUE_STD_VECTOR( ) 
+#define DEF_ALL_CMAKE_PROPERTIES_VALUE_GET_VALID_PAIRS_STD_VECTOR( ) \
+inline static std::vector< std::pair< std::string, std::string > > getValidCmakePropertyPairs( ) { \
+	std::vector< std::pair< std::string, std::string > > result; \
+	for( auto &pair : cmake_property_name_all_value ) \
+		if( !pair.second.ends_with( "-NOTFOUND" ) && !pair.second.empty( ) ) \
+			result.emplace_back( pair ); \
+	return result; \
+} \
+extern const std::vector< std::pair< std::string, std::string > > cmake_property_name_all_value
+)" << L"\n\n// cmake -> \n" << cmkaeFcuntionGetProperty.str( ) << L"\n\n// cmake end\n";
+
+			cHeardFile << "#endif // " << headOneBuilderMarco;
 			targetPropertiesWriteHeader.writePathFile( cHeardFile.str( ) );
 		}
 	}
@@ -144,8 +161,67 @@ void testRmoveSpace( ) {
 	auto removeBothSpaceChar = cyl::tools::stringTools::removeBothSpaceChar( obj );
 	std::wcout << L"$" << removeBothSpaceChar << L"$" << std::endl;
 }
+void readCmakeValueInfoFile( const string &cmake_path ) {
+	cyl::tools::path targetProperties( cmake_path + +"/cmake/value/" );
+	auto pathFileRecursive = targetProperties.getPathFileRecursive( );
+	if( pathFileRecursive.size( ) ) { // 读取目标
+		std::wstringstream cHeardFile, cmkaeFcuntionGetProperty, defineVector;
+		std::wstring spliteStr( L"\n" );
+		std::wstring startMacroString( L"cmake_value_" );
+		std::wstring textContext;
+		std::wstring headOneBuilderMarco = L"CMAKE__VALUE_TO_C_CPP_HEADER_ENV_H_H_HEAD__FILE__";
+		cHeardFile << "#ifndef " << headOneBuilderMarco << "\n#define " << headOneBuilderMarco << L"\n#pragma once\n";
+		defineVector << LR"(
+#include <utility>
+#include <string>
+#include <vector>
+/// @brief 
+#define DEF_ALL_CMAKE_VALUE_VALUE_STD_VECTOR( ) \
+const static std::vector<std::pair<std::string, std::string>> cmake_value_name_all_value = { \
+)";
+		for( auto &path : pathFileRecursive ) {
+			cyl::tools::path readCmakeValuePath( path );
 
-DEF_ALL_CMAKE_VALUE_STD_VECTOR( );
+			if( readCmakeValuePath.readPathFile( &textContext ) ) {
+				auto splitString = cyl::tools::stringTools::splitString( textContext, spliteStr );
+				for( auto &removeBothSpace : splitString ) {
+					auto removeBothSpaceChar = cyl::tools::stringTools::removeBothSpaceChar( removeBothSpace );
+
+					// 长度为0，或者字符串当中存在空格，则不处理
+					if( removeBothSpaceChar.empty( ) || cyl::tools::stringTools::hasSpace( removeBothSpaceChar ) || removeBothSpaceChar.find( L"<" ) != std::wstring::npos )
+						continue;
+					auto cHeardKeyName = startMacroString + cyl::tools::stringTools::toUpper( removeBothSpaceChar );
+					cHeardFile << L"/// @brief \n#define " << cHeardKeyName << L" \"${" << removeBothSpaceChar << L"}\"\n";
+
+					defineVector << LR"(	std::pair<std::string, std::string>( ")" << cHeardKeyName << LR"(", )" << cHeardKeyName << "),\\\n";
+				}
+			}
+
+		}
+		defineVector << L"}";
+		cHeardFile << defineVector.str( ) << LR"(
+/// @brief 定义获取有效 cmake 属性的函数，该声明前必须调用 DEF_ALL_CMAKE_VALUE_VALUE_STD_VECTOR( ) 
+#define DEF_ALL_CMAKE_VALUE_VALUE_GET_VALID_PAIRS_STD_VECTOR( ) \
+inline static std::vector< std::pair< std::string, std::string > > getValidCmakeValuePairs( ) { \
+	std::vector< std::pair< std::string, std::string > > result; \
+	for( auto &pair : cmake_value_name_all_value ) \
+		if( !pair.second.ends_with( "-NOTFOUND" ) && !pair.second.empty( ) ) \
+			result.emplace_back( pair ); \
+	return result; \
+} \
+extern const std::vector< std::pair< std::string, std::string > > cmake_value_name_all_value
+)";
+		cHeardFile << "#endif // " << headOneBuilderMarco;
+		cyl::tools::path targetPropertiesWriteHeader( cmake_path + "/cmake/write/value/value.h" );
+		targetPropertiesWriteHeader.writePathFile( cHeardFile.str( ) );
+	}
+}
+
+DEF_ALL_CMAKE_PROPERTIES_VALUE_STD_VECTOR( );
+DEF_ALL_CMAKE_PROPERTIES_VALUE_GET_VALID_PAIRS_STD_VECTOR( );
+
+DEF_ALL_CMAKE_VALUE_VALUE_STD_VECTOR( );
+DEF_ALL_CMAKE_VALUE_VALUE_GET_VALID_PAIRS_STD_VECTOR( );
 int main( int argc, char *argv[ ] ) {
 	try {
 		auto text = "en_US.UTF-8";
@@ -158,13 +234,19 @@ int main( int argc, char *argv[ ] ) {
 		std::cerr << msg.what( ) << std::endl;
 		return -1;
 	}
-	for( auto &pair : cmake_all_name_value ) {
+	for( auto &pair : getValidCmakePropertyPairs( ) ) {
 		std::cout << pair.first << " : " << pair.second << std::endl;
 	}
-	// readOpenglEnumInfoFile( project_name + "/resources/opengl" );
-	//testSplitString( );
+	std::cout << "==================" << std::endl;
+	for( auto &pair : getValidCmakeValuePairs( ) ) {
+		std::cout << pair.first << " : " << pair.second << std::endl;
+	}
+	std::cout << "==================" << std::endl;
+	//readopenglenuminfofile( project_name + "/resources/opengl" );
+	testSplitString( );
 	//testRmoveSpace( );
 	readCmakePropertiesInfoFile( project_name + "/resources" );
+	readCmakeValueInfoFile( project_name + "/resources" );
 
 	exit( EXIT_SUCCESS ); // 程序退出
 }
