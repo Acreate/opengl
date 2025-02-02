@@ -18,7 +18,7 @@ set_target_bin_out_path_property( ${PROJECT_NAME} "${Project_Run_Bin_Path}" )
 set_target_static_lib_out_path_property( ${PROJECT_NAME} "${Project_Run_Static_Lib_Path}" )
 set_target_pdb_out_path_property( ${PROJECT_NAME} "${Project_Run_Pbd_Path}" )
 
-set_target_link_glad33core_lib( ${PROJECT_NAME} )
+set_target_link_glad46compatibility_lib( ${PROJECT_NAME} )
 set_target_link_glfw3_lib( ${PROJECT_NAME} )
 set_target_link_user_tools_lib( ${PROJECT_NAME} )
 set_target_link_win_opengl3_lib( ${PROJECT_NAME} )
