@@ -26,6 +26,7 @@ set( Project_Install_Path "${CMAKE_HOME_DIRECTORY}/builder/install/" )
 
 add_subdirectory_tools_lib()
 
+# # add_subdirectory_test_code_project() ## 测试工具
 get_path_cmake_dir_path( lib_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/libs/users" "CMakeLists.txt" )
 get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/testCode/" "CMakeLists.txt" )
 get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/video sources/" "CMakeLists.txt" )
