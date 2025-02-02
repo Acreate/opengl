@@ -13,7 +13,7 @@ get_cmake_separator( cmake_sep_char )
 get_current_dir_name( prject_name ${CMAKE_CURRENT_SOURCE_DIR} )
 message( "============ ${prject_name}" )
 message( "name = " ${prject_name} )
-project( ${prject_name} VERSION 0.1 LANGUAGES CXX )
+project( ${prject_name} )
 message( "============ ${CURRENT_FOLDER}" )
 
 include( GenerateExportHeader )
