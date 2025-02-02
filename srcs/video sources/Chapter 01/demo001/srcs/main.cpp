@@ -15,10 +15,11 @@ DEF_CURRENT_PROJECT_NAME( );
 void frameBuffSizeCallback( GLFWwindow *window, int width, int height ) {
 	int left, top, right, bottom;
 	glfwGetWindowFrameSize( window, &left, &top, &right, &bottom );
-	glViewport( left, top, right, bottom ); // 重新调整 opengl 渲染区域
+	glViewport( left, top, right, bottom ); // 指定 opengl 渲染矩形
 }
-void processInput( GLFWwindow *glf_wwindow ) {
-
+void processInput( GLFWwindow *glfw_window ) {
+	if( glfwGetKey( glfw_window, GLFW_KEY_ESCAPE ) == GLFW_PRESS )
+		glfwSetWindowShouldClose( glfw_window, true );
 }
 int main( int argc, char **argv ) {
 	if( glfwInit( ) == GLFW_FALSE ) {
@@ -40,27 +41,40 @@ int main( int argc, char **argv ) {
 		glfwTerminate( ); // 终止 glfw
 		exit( EXIT_FAILURE ); // 异常退出
 	}
-	int left, top, right, bottom;
-	glfwGetWindowFrameSize( glfWwindow, &left, &top, &right, &bottom );
-	glViewport( left, top, right, bottom ); // 创建 opengl 视口-指定渲染矩形
+
 	glfwSetFramebufferSizeCallback( glfWwindow, frameBuffSizeCallback );
-	while( glfWwindow ) {
-		if( glfwWindowShouldClose( glfWwindow ) ) { // 是否存在退出消息
-			glfwDestroyWindow( glfWwindow );
-			glfWwindow = nullptr;
-			continue;
+	frameBuffSizeCallback( glfWwindow, 0, 0 );
+
+	std::vector< GLFWwindow * > wins;
+	wins.emplace_back( glfWwindow );
+	auto begin = wins.begin( );
+	auto end = wins.end( );
+	GLFWwindow *getCurrentContext = nullptr;
+	do {
+		if( begin == end ) {
+			begin = wins.begin( ); // 重置下标
+			end = wins.end( ); // 重置结束
+			if( begin == end ) // 重置发现不存在任何元素，则退出
+				break;
 		}
-		auto getCurrentContext = glfwGetCurrentContext( );
-		if( getCurrentContext == nullptr ) {
-			Printer_Error_Info( "不存在 opengl 渲染窗口" );
-			break;
+		if( getCurrentContext != *begin ) { // 窗口不相同，则把 opengl 渲染行为树配置到新的窗口
+			getCurrentContext = *begin;
+			glfwMakeContextCurrent( getCurrentContext );
 		}
-		processInput( getCurrentContext );
-		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
-		glClear( GL_COLOR_BUFFER_BIT );
-		glfwSwapBuffers( getCurrentContext ); // 交换
-		glfwPollEvents( ); // 时间循环
-	}
+		if( glfwWindowShouldClose( getCurrentContext ) ) { // 是否存在退出消息
+			glfwDestroyWindow( getCurrentContext );
+			std::erase( wins, getCurrentContext );
+			begin = wins.begin( ); // 重置下标
+			end = wins.end( ); // 重置结束
+		} else {
+			processInput( getCurrentContext );
+			glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
+			glClear( GL_COLOR_BUFFER_BIT );
+			glfwSwapBuffers( getCurrentContext ); // 交换
+			++begin; // 下一个窗口
+		}
+		glfwPollEvents( ); // 事件循环
+	} while( true ) ;
 	glfwTerminate( ); // 关闭 glfw 资源
 	exit( EXIT_SUCCESS ); // 安全退出
 }
