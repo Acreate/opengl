@@ -66,7 +66,7 @@ int main( int argc, char **argv ) {
 			std::erase( wins, getCurrentContext );
 			begin = wins.begin( ); // 重置下标
 			end = wins.end( ); // 重置结束
-		} else {
+		} else { // 没有退出消息，则开始使用渲染功能
 			processInput( getCurrentContext );
 			glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
 			glClear( GL_COLOR_BUFFER_BIT );
