@@ -3,7 +3,7 @@
 #include <iostream>
 #include <tools/io.h>
 #include <tools/path.h>
-#include "../auto_generate_files/macro/cmake_include_to_c_cpp_header_env.h"
+#include <cmake_include_to_c_cpp_header_env.h>
 DEF_CURRENT_RELATIVELY_PATH_STATIC_VALUE( __FILE__ );
 DEF_CURRENT_PROJECT_NAME( );
 
@@ -45,36 +45,14 @@ int main( int argc, char **argv ) {
 	glfwSetFramebufferSizeCallback( glfWwindow, frameBuffSizeCallback );
 	frameBuffSizeCallback( glfWwindow, 0, 0 );
 
-	std::vector< GLFWwindow * > wins;
-	wins.emplace_back( glfWwindow );
-	auto begin = wins.begin( );
-	auto end = wins.end( );
-	GLFWwindow *getCurrentContext = nullptr;
-	do {
-		if( begin == end ) {
-			begin = wins.begin( ); // 重置下标
-			end = wins.end( ); // 重置结束
-			if( begin == end ) // 重置发现不存在任何元素，则退出
-				break;
-		}
-		if( getCurrentContext != *begin ) { // 窗口不相同，则把 opengl 渲染行为树配置到新的窗口
-			getCurrentContext = *begin;
-			glfwMakeContextCurrent( getCurrentContext );
-		}
-		if( glfwWindowShouldClose( getCurrentContext ) ) { // 是否存在退出消息
-			glfwDestroyWindow( getCurrentContext );
-			std::erase( wins, getCurrentContext );
-			begin = wins.begin( ); // 重置下标
-			end = wins.end( ); // 重置结束
-		} else { // 没有退出消息，则开始使用渲染功能
-			processInput( getCurrentContext );
-			glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
-			glClear( GL_COLOR_BUFFER_BIT );
-			glfwSwapBuffers( getCurrentContext ); // 交换
-			++begin; // 下一个窗口
-		}
+	while( !glfwWindowShouldClose( glfWwindow ) ) {
+		processInput( glfWwindow );
+		glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
+		glClear( GL_COLOR_BUFFER_BIT );
+		glfwSwapBuffers( glfWwindow ); // 交换
 		glfwPollEvents( ); // 事件循环
-	} while( true ) ;
+	}
+	glfwDestroyWindow( glfWwindow );
 	glfwTerminate( ); // 关闭 glfw 资源
 	exit( EXIT_SUCCESS ); // 安全退出
 }
