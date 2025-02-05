@@ -44,6 +44,6 @@ list( APPEND out_path_list ${lib_list} ${bin_list} )
 set( libs_path "${CMAKE_CURRENT_SOURCE_DIR}/srcs/libs/" )
 
 filter_path_repetition( list_result out_path_list )
-append_sub_directory_cmake_project_path( list_result )
+append_sub_directory_cmake_project_path_list( list_result )
 
 configure_all_target()

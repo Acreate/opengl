@@ -1,7 +1,7 @@
 ﻿#include "base.h"
 #include "shader.h"
-GLuint vbo = 0;
-GLuint vao = 0;
+GLuint g_vbo = 0;
+GLuint g_vao = 0;
 
 /// @brief 构建模型
 void initModel( ) {
@@ -12,15 +12,15 @@ void initModel( ) {
 			0, 0.5f, 0, 0.0f, 0.0f, 1.0f,
 		};
 
-	// 请求生成 vao
-	glGenVertexArrays( 1, &vao );
-	// 绑定 vao
-	glBindVertexArray( vao );
+	// 请求生成 g_vao
+	glGenVertexArrays( 1, &g_vao );
+	// 绑定 g_vao
+	glBindVertexArray( g_vao );
 
-	// 请求生成 vbo
-	glGenBuffers( 1, &vbo );
+	// 请求生成 g_vbo
+	glGenBuffers( 1, &g_vbo );
 	// 绑定内存
-	glBindBuffer( GL_ARRAY_BUFFER, vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, g_vbo );
 	// 配置内存
 	glBufferData( GL_ARRAY_BUFFER, sizeof( verices ), verices, GL_STATIC_DRAW );
 	// 定位 layout
@@ -30,9 +30,9 @@ void initModel( ) {
 	glEnableVertexAttribArray( 0 );
 	glEnableVertexAttribArray( 1 );
 
-	// 重置 vbo
+	// 重置 g_vbo
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	// 重置 vao
+	// 重置 g_vao
 	glBindVertexArray( 0 );
 
 	glEnable( GL_BLEND ); // 启用混合
@@ -50,7 +50,7 @@ void initShader( const std::string &vertex_shader_file_path_name, const std::str
 /// @brief 渲染到渲染区
 void rend( ) {
 
-	glBindVertexArray( vao ); // 使用 vao 管理顶点数据的获取方式/通道
+	glBindVertexArray( g_vao ); // 使用 g_vao 管理顶点数据的获取方式/通道
 	g_shaderProgram.start( );
 
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
@@ -109,7 +109,7 @@ int main( int argc, char **argv ) {
 		glfwPollEvents( ); // 事件循环
 	}
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	glDeleteBuffers( 1, &vbo );
+	glDeleteBuffers( 1, &g_vbo );
 	glfwDestroyWindow( glfWwindow );
 	glfwTerminate( ); // 关闭 glfw 资源
 	exit( EXIT_SUCCESS ); // 安全退出

@@ -8,7 +8,7 @@
 DEF_CURRENT_RELATIVELY_PATH_STATIC_VALUE( __FILE__ );
 DEF_CURRENT_PROJECT_NAME( );
 
-GLuint vbo = 0;
+GLuint g_vbo = 0;
 GLuint vbo2 = 0;
 // GLuint vao = 0;
 /// @brief 构建模型
@@ -25,10 +25,10 @@ void initModel( ) {
 	// 绑定 vao
 	//glBindVertexArray( vao );
 
-	// 请求生成 vbo
-	glGenBuffers( 1, &vbo );
+	// 请求生成 g_vbo
+	glGenBuffers( 1, &g_vbo );
 	// 绑定内存
-	glBindBuffer( GL_ARRAY_BUFFER, vbo );
+	glBindBuffer( GL_ARRAY_BUFFER, g_vbo );
 	// 配置内存
 	glBufferData( GL_ARRAY_BUFFER, sizeof( verices ), verices, GL_STATIC_DRAW );
 	// 定位 layout
@@ -36,7 +36,7 @@ void initModel( ) {
 	// 激活 layout
 	glEnableVertexAttribArray( 0 );
 
-	// 重置 vbo
+	// 重置 g_vbo
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	// 重置 vao
 	//glBindVertexArray( 0 );
@@ -53,7 +53,7 @@ void initModel( ) {
 	// 绑定 vao
 	//glBindVertexArray( vao );
 
-	// 请求生成 vbo
+	// 请求生成 g_vbo
 	glGenBuffers( 1, &vbo2 );
 	// 绑定内存
 	glBindBuffer( GL_ARRAY_BUFFER, vbo2 );
@@ -64,7 +64,7 @@ void initModel( ) {
 	// 激活 layout
 	glEnableVertexAttribArray( 0 );
 
-	// 重置 vbo
+	// 重置 g_vbo
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
 }
@@ -161,7 +161,7 @@ void initShader( const std::string &vertex_shader_file_path_name, const std::str
 /// @brief 渲染到渲染区
 void rend( ) {
 	//glBindVertexArray( vao );
-	glBindBuffer( GL_ARRAY_BUFFER, vbo ); // 缺少 vao，会使用最近的一次数据 
+	glBindBuffer( GL_ARRAY_BUFFER, g_vbo ); // 缺少 vao，会使用最近的一次数据 
 	glUseProgram( shaderProgram );
 	glDrawArrays( GL_TRIANGLES, 0, 3 );
 	glUseProgram( 0 );
@@ -219,7 +219,7 @@ int main( int argc, char **argv ) {
 		glfwPollEvents( ); // 事件循环
 	}
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	glDeleteBuffers( 1, &vbo );
+	glDeleteBuffers( 1, &g_vbo );
 	glDeleteProgram( shaderProgram );
 	glfwDestroyWindow( glfWwindow );
 	glfwTerminate( ); // 关闭 glfw 资源

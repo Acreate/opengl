@@ -3,7 +3,10 @@
 #include "ffImage.h"
 #include <tools/io.h>
 #include <tools/path.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <cmake_include_to_c_cpp_header_env.h>
+
+#include "camera.h"
 DEF_CURRENT_RELATIVELY_PATH_STATIC_VALUE( __FILE__ );
 DEF_CURRENT_PROJECT_NAME( );
 
@@ -22,47 +25,65 @@ GLuint g_texture = 0;
 
 /// @brief 构建模型
 void initModel( ) {
-	// 三角形的三个顶点
-	float verices[ ] = {
-			0.5, 0.5, 0, 1.0f, 0.0f, 0.0f, 1.0, 1,
-			0.5f, -0.5f, 0, 0.0f, 1.0f, 0.0f, 1.0, 0,
-			-0.5f, -0.5f, 0, 0.0f, 0.0f, 1.0f, 0, 0,
-			-0.5f, 0.5f, 0, 0.0f, 1.0f, 0.0f, 0, 1
-		};
-	// 索引数组
-	GLuint indices[ ] = {
-			0, 1, 3,
-			1, 2, 3
+	float vertices[ ] = {
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+			0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+			-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+			-0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+			0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+			0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+			0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+			-0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+			-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+			0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+			-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+			-0.5f, 0.5f, -0.5f, 0.0f, 1.0f
 		};
 
-	// 请求生成 g_vao
 	glGenVertexArrays( 1, &g_vao );
-	// 绑定 g_vao
 	glBindVertexArray( g_vao );
 
-	// 请求生成 veo
-	glGenBuffers( 1, &ebo );
-	// 绑定内存
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebo );
-	// 配置内存
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( indices ), indices, GL_STATIC_DRAW );
-
-	// 请求生成 g_vbo
 	glGenBuffers( 1, &g_vbo );
-	// 绑定内存
 	glBindBuffer( GL_ARRAY_BUFFER, g_vbo );
-	// 配置内存
-	glBufferData( GL_ARRAY_BUFFER, sizeof( verices ), verices, GL_STATIC_DRAW );
-	size_t floatTypeSize = sizeof( float );
-	// 定位 layout
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 8 * floatTypeSize, 0 ); // 顶点数据
-	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 8 * floatTypeSize, ( void * ) ( 3 * floatTypeSize ) ); // 顶点序列
-	glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 8 * floatTypeSize, ( void * ) ( 6 * floatTypeSize ) ); // 图元位置数据
-	// 激活 layout
+	glBufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW );
+
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof( float ), ( void * ) 0 );
+	glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof( float ), ( void * ) ( sizeof( float ) * 3 ) );
+
 	glEnableVertexAttribArray( 0 );
 	glEnableVertexAttribArray( 1 );
-	glEnableVertexAttribArray( 2 );
 
+	glBindVertexArray( 0 );
+	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	// 请求生成纹理
 	glGenTextures( 1, &g_texture );
 	// 绑定到 2d 纹理
@@ -92,16 +113,50 @@ Shader g_shaderProgram;
 void initShader( const std::string &vertex_shader_file_path_name, const std::string &fragment_shader_file_path_name ) {
 	g_shaderProgram.initShader( vertex_shader_file_path_name, fragment_shader_file_path_name );
 }
+
+int g_width = 800;
+int g_height = 600;
+glm::mat4 _viewMatrix( 1.0f );
+glm::mat4 _projMatrix( 1.0f );
+
+Camera _camera;
 /// @brief 渲染到渲染区
 void rend( ) {
+	glClearColor( 0.2f, 0.3f, 0.3f, 1.0f );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glEnable( GL_DEPTH_TEST );
 
-	glBindVertexArray( g_vao ); // 使用 g_vao 管理顶点数据的获取方式/通道
-	glBindTexture( GL_TEXTURE_2D, g_texture ); // 绑定图元
-	g_shaderProgram.start( );
+	glm::vec3 modelVecs[ ] = {
+			glm::vec3( 0.0f, 0.0f, 0.0f ),
+			glm::vec3( 2.0f, 5.0f, -15.0f ),
+			glm::vec3( -1.5f, -2.2f, -2.5f ),
+			glm::vec3( -3.8f, -2.0f, -12.3f ),
+			glm::vec3( 2.4f, -0.4f, -3.5f ),
+			glm::vec3( -1.7f, 3.0f, -7.5f ),
+			glm::vec3( 1.3f, -2.0f, -2.5f ),
+			glm::vec3( 1.5f, 2.0f, -2.5f ),
+			glm::vec3( 1.5f, 0.2f, -1.5f ),
+			glm::vec3( -1.3f, 1.0f, -1.5f )
+		};
 
-	// glDrawArrays( GL_TRIANGLES, 0, 3 );
-	glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0 );
-	g_shaderProgram.end( );
+	_camera.update( );
+	_projMatrix = glm::perspective( glm::radians( 45.0f ), ( float ) g_width / ( float ) g_height, 0.1f, 100.0f );
+
+	glBindTexture( GL_TEXTURE_2D, g_texture );
+
+	for( int i = 0; i < 10; i++ ) {
+		glm::mat4 _modelMatrix( 1.0f );
+		_modelMatrix = glm::translate( _modelMatrix, modelVecs[ i ] );
+		_modelMatrix = glm::rotate( _modelMatrix, glm::radians( ( float ) glfwGetTime( ) * ( i + 1 ) * 10 ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+
+		g_shaderProgram.start( );
+		g_shaderProgram.setMatrix( "_modelMatrix", _modelMatrix );
+		g_shaderProgram.setMatrix( "_viewMatrix", _camera.getMatrix( ) );
+		g_shaderProgram.setMatrix( "_projMatrix", _projMatrix );
+		glBindVertexArray( g_vao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		g_shaderProgram.end( );
+	}
 }
 
 /// @brief 窗口大小(帧缓存)发生变换时，发生调用
@@ -110,12 +165,31 @@ void rend( ) {
 /// @param width 新宽度
 /// @param height 新高度
 void frameBuffSizeCallback( GLFWwindow *window, int width, int height ) {
+	g_width = width;
+	g_height = height;
 	glViewport( 0, 0, width, height ); // 指定 opengl 渲染矩形
 }
 void processInput( GLFWwindow *glfw_window ) {
 	if( glfwGetKey( glfw_window, GLFW_KEY_ESCAPE ) == GLFW_PRESS )
 		glfwSetWindowShouldClose( glfw_window, true );
+
+	if( glfwGetKey( glfw_window, GLFW_KEY_W ) == GLFW_PRESS ) {
+		_camera.move( CAMERA_MOVE::MOVE_FRONT );
+	}
+	if( glfwGetKey( glfw_window, GLFW_KEY_S ) == GLFW_PRESS ) {
+		_camera.move( CAMERA_MOVE::MOVE_BACK );
+	}
+	if( glfwGetKey( glfw_window, GLFW_KEY_A ) == GLFW_PRESS ) {
+		_camera.move( CAMERA_MOVE::MOVE_LEFT );
+	}
+	if( glfwGetKey( glfw_window, GLFW_KEY_D ) == GLFW_PRESS ) {
+		_camera.move( CAMERA_MOVE::MOVE_RIGHT );
+	}
 }
+void mouse_callback( GLFWwindow *window, double xpos, double ypos ) {
+	_camera.onMouseMove( xpos, ypos );
+}
+
 int main( int argc, char **argv ) {
 	if( glfwInit( ) == GLFW_FALSE ) {
 		Printer_Error_Info( "无法初始化 glfw 库" );
@@ -125,9 +199,7 @@ int main( int argc, char **argv ) {
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 ); // 最小次版本号
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE ); // opengl 通用模式
 
-	int width = 800;
-	int height = 600;
-	GLFWwindow *glfWwindow = glfwCreateWindow( width, height, project_name.c_str( ), nullptr, nullptr );
+	GLFWwindow *glfWwindow = glfwCreateWindow( g_width, g_height, project_name.c_str( ), nullptr, nullptr );
 	if( glfWwindow == nullptr ) { // 不存在窗口
 		Printer_Error_Info( "无法创建匹配的窗口" );
 		glfwTerminate( ); // 终止 glfw
@@ -140,8 +212,13 @@ int main( int argc, char **argv ) {
 		exit( EXIT_FAILURE ); // 异常退出
 	}
 	glfwSetFramebufferSizeCallback( glfWwindow, frameBuffSizeCallback );
-	frameBuffSizeCallback( glfWwindow, width, height );
+	frameBuffSizeCallback( glfWwindow, g_width, g_height );
 
+	glfwSetInputMode( glfWwindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+	glfwSetCursorPosCallback( glfWwindow, mouse_callback );
+
+	_camera.lookAt( glm::vec3( 0.0f, 0.0f, 3.0f ), glm::vec3( 0.0f, 0.0f, -1.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	_camera.setSpeed( 0.01f );
 	initTexture( );
 	initModel( );
 	auto vertexShaderFilePath = project_name + "/resources/vertexShader.glsl";
