@@ -40,3 +40,21 @@ vbo - vbo2 显示三角形
 
 增加透明处理
 
+#### demo007
+
+封装 shader
+
+#### demo008
+
+使用ebo
+
+#### demo009
+
+使用 纹理对象 -> glGenTextures
+
+#### demo010
+
+纹理与颜色进行混合
+
+
+

@@ -40,6 +40,8 @@ void initModel( ) {
 	// 重置 vao
 	glBindVertexArray( 0 );
 
+	glEnable( GL_BLEND ); // 启用混合
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // 混合透明
 }
 
 /// @brief 输出着色器错误
@@ -130,8 +132,6 @@ void initShader( const std::string &vertex_shader_file_path_name, const std::str
 			glUseProgram( shaderProgram );
 	}
 
-	glEnable( GL_BLEND ); // 启用混合
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // 混合透明
 }
 
 /// @brief 渲染到渲染区
