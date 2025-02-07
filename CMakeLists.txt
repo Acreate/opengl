@@ -37,7 +37,8 @@ add_subdirectory_tools_lib()
 # # add_subdirectory_test_code_project() ## 测试工具
 get_path_cmake_dir_path( lib_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/libs/users" "CMakeLists.txt" )
 get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/testCode/" "CMakeLists.txt" )
-get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/video sources/" "CMakeLists.txt" )
+get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/video sources/imgui/" "CMakeLists.txt" )
+# #get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/web/" "CMakeLists.txt" )
 
 list( APPEND out_path_list ${lib_list} ${bin_list} )
 
