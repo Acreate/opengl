@@ -78,22 +78,22 @@ int main( int argc, char **argv ) {
 	IMGUI_CHECKVERSION( );
 	ImGui::CreateContext( );
 	ImGuiIO &io = ImGui::GetIO( );
-	( void ) io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
-
-	auto projectCunrrentFont = project_name + "/resources/font/GlowSansSC-v0.93/GlowSansSC-Normal-Regular.otf";
-	cyl::tools::path path( projectCunrrentFont );
+	// 激活按键、手柄控制
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+	
+	cyl::tools::path cylFont( project_name + "/resources/font/GlowSansSC-Normal-Regular.otf" );
 	float sizePixels = 42.0f;
-	auto chineseSimplifiedCommon = io.Fonts->GetGlyphRangesChineseSimplifiedCommon( );
-	if( path.isExists( ) )
-		io.Fonts->AddFontFromFileTTF( projectCunrrentFont.c_str( ), sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+	auto chineseSimplifiedCommon = io.Fonts->GetGlyphRangesChineseFull( );
+	if( cylFont.isExists( ) )
+		io.Fonts->AddFontFromFileTTF( cylFont.getAbsPath( ).string( ).c_str( ), sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
 	else
-		io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\simsun.ttc", sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+		io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\SimSun.ttc", sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+	
 	ImGui::StyleColorsDark( );
 	ImGui_ImplGlfw_InitForOpenGL( glfWwindow, true );
 	ImGui_ImplOpenGL3_Init( glsl_version );
 
+	glClearColor( 0, 0, 0, 0 );
 	while( !glfwWindowShouldClose( glfWwindow ) ) {
 		glfwPollEvents( ); // 事件循环
 		if( glfwGetWindowAttrib( glfWwindow, GLFW_ICONIFIED ) != 0 ) {
@@ -117,10 +117,6 @@ int main( int argc, char **argv ) {
 		ImGui::End( ); // ImGui::Begin 必须 ImGui::End
 		// Rendering
 		ImGui::Render( );
-		int display_w, display_h;
-		glfwGetFramebufferSize( glfWwindow, &display_w, &display_h );
-		glViewport( 0, 0, display_w, display_h );
-		glClearColor( 0, 0, 0, 0 );
 		glClear( GL_COLOR_BUFFER_BIT );
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData( ) );
 
