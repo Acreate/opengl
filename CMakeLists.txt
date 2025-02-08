@@ -13,10 +13,12 @@ message( "============ ${CURRENT_FOLDER}" )
 set( CMAKE_C_STANDARD 17 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 set( CMAKE_C_VISIBILITY_PRESET hidden )
+set( CMAKE_C_EXTENSIONS ON )
 
 set( CMAKE_CXX_STANDARD 23 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_VISIBILITY_PRESET hidden )
+set( CMAKE_CXX_EXTENSIONS ON )
 
 supper_cmake_builder_language( _cmake_supper_language_list ) # # 语言支持列表
 
@@ -35,10 +37,9 @@ set( Project_Install_Path "${CMAKE_HOME_DIRECTORY}/builder/install/" )
 add_subdirectory_tools_lib()
 
 # # add_subdirectory_test_code_project() ## 测试工具
-get_path_cmake_dir_path( lib_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/libs/users" "CMakeLists.txt" )
-get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/testCode/" "CMakeLists.txt" )
+
 get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/video sources/imgui/" "CMakeLists.txt" )
-# #get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/web/" "CMakeLists.txt" )
+## get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/learn/" "CMakeLists.txt" )
 
 list( APPEND out_path_list ${lib_list} ${bin_list} )
 

@@ -21,41 +21,56 @@ void frameBuffSizeCallback( GLFWwindow *window, int width, int height ) {
 	glfwGetWindowFrameSize( window, &left, &top, &right, &bottom );
 	glViewport( left, top, right, bottom ); // 指定 opengl 渲染矩形
 }
+/// @brief 定义opengl版本
+/// @return 版本头缀
+std::string defOpenGLVersion( ) {
+	// Decide GL+GLSL versions
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+    // GL ES 2.0 + GLSL 100 (WebGL 1.0)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    return "#version 100";
+#elif defined(IMGUI_IMPL_OPENGL_ES3)
+    // GL ES 3.0 + GLSL 300 es (WebGL 2.0)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    return "#version 300 es";
+#elif defined(__APPLE__)
+    // GL 3.2 + GLSL 150
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+    return "#version 150";
+#else
+	// GL 3.0 + GLSL 130
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
+	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+	return "#version 130";
+#endif
+
+}
+/// @brief 使用新的字符替换编码文件，改进中文的显示-解决乱码
+/// @param io 替换的输入输入对象
+void loadNewFontChangeChineseFull( ImGuiIO &io ) {
+	cyl::tools::path cylFont( project_name + "/resources/font/GlowSansSC-Normal-Regular.otf" );
+	float sizePixels = 42.0f;
+	auto chineseSimplifiedCommon = io.Fonts->GetGlyphRangesChineseFull( );
+	if( cylFont.isExists( ) )
+		io.Fonts->AddFontFromFileTTF( cylFont.getAbsPath( ).string( ).c_str( ), sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+	else
+		io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\SimSun.ttc", sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+}
 int main( int argc, char **argv ) {
 	if( glfwInit( ) == GLFW_FALSE ) {
 		Printer_Error_Info( "无法初始化 glfw 库" );
 		exit( EXIT_FAILURE ); // 异常退出
 	}
-
-	// Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-    // GL ES 2.0 + GLSL 100 (WebGL 1.0)
-    const char* glsl_version = "#version 100";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(IMGUI_IMPL_OPENGL_ES3)
-    // GL ES 3.0 + GLSL 300 es (WebGL 2.0)
-    const char* glsl_version = "#version 300 es";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(__APPLE__)
-    // GL 3.2 + GLSL 150
-    const char* glsl_version = "#version 150";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-#else
-	// GL 3.0 + GLSL 130
-	const char *glsl_version = "#version 130";
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-#endif
-
+	auto defOpenGlVersion = defOpenGLVersion( );
 	int width = 800;
 	int height = 600;
 	GLFWwindow *glfWwindow = glfwCreateWindow( width, height, project_name.c_str( ), nullptr, nullptr );
@@ -82,20 +97,15 @@ int main( int argc, char **argv ) {
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 
-	cyl::tools::path cylFont( project_name + "/resources/font/GlowSansSC-Normal-Regular.otf" );
-	float sizePixels = 42.0f;
-	auto chineseSimplifiedCommon = io.Fonts->GetGlyphRangesChineseFull( );
-	if( cylFont.isExists( ) )
-		io.Fonts->AddFontFromFileTTF( cylFont.getAbsPath( ).string( ).c_str( ), sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
-	else
-		io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\SimSun.ttc", sizePixels, NULL, chineseSimplifiedCommon ); // 加载中文
+	loadNewFontChangeChineseFull( io );
 
 	ImGui::StyleColorsDark( );
 	ImGui_ImplGlfw_InitForOpenGL( glfWwindow, true );
-	ImGui_ImplOpenGL3_Init( glsl_version );
+	ImGui_ImplOpenGL3_Init( defOpenGlVersion.c_str( ) );
 
 	glClearColor( 0, 0, 0, 0 );
 	while( !glfwWindowShouldClose( glfWwindow ) ) {
+		glClear( GL_COLOR_BUFFER_BIT );
 		glfwPollEvents( ); // 事件循环
 		if( glfwGetWindowAttrib( glfWwindow, GLFW_ICONIFIED ) != 0 ) {
 			ImGui_ImplGlfw_Sleep( 10 );
@@ -119,11 +129,15 @@ int main( int argc, char **argv ) {
 		// Rendering
 		ImGui::Render( );
 
-		glClear( GL_COLOR_BUFFER_BIT );
 		ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData( ) );
 
 		glfwSwapBuffers( glfWwindow ); // 交换
 	}
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown( );
+	ImGui_ImplGlfw_Shutdown( );
+	ImGui::DestroyContext( );
+
 	glfwDestroyWindow( glfWwindow );
 	glfwTerminate( ); // 关闭 glfw 资源
 	exit( EXIT_SUCCESS ); // 安全退出
