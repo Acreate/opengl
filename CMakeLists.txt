@@ -21,12 +21,10 @@ set( CMAKE_CXX_VISIBILITY_PRESET hidden )
 set( CMAKE_CXX_EXTENSIONS ON )
 
 supper_cmake_builder_language( _cmake_supper_language_list ) # # 语言支持列表
+append_source_file_extensions( LANGUAGES C CXX SUFFIXS h hpp hc H HPP HC ui UI ) # # 追加后缀名
 
 include( GenerateExportHeader )
 include( GNUInstallDirs )
-
-append_CXX_C_source_file_extensions( h hpp hc H HPP HC ) # # 追加后缀名
-
 get_cmake_separator( cmake_sep_char )
 
 set( Project_Run_Bin_Path "${CMAKE_HOME_DIRECTORY}/builder/${CMAKE_BUILD_TYPE}/${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}_${CMAKE_CXX_COMPILER_ID}_bin/" )
@@ -36,10 +34,9 @@ set( Project_Install_Path "${CMAKE_HOME_DIRECTORY}/builder/install/" )
 
 add_subdirectory_tools_lib()
 
-# # add_subdirectory_test_code_project() ## 测试工具
+add_subdirectory_code_imgui_project() # # 包含 imgui 学习裤
 
 get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/video sources/imgui/" "CMakeLists.txt" )
-## get_path_cmake_dir_path( bin_list "${CMAKE_CURRENT_SOURCE_DIR}/srcs/learn/" "CMakeLists.txt" )
 
 list( APPEND out_path_list ${lib_list} ${bin_list} )
 
